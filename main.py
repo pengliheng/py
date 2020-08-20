@@ -1,0 +1,45 @@
+from pprint import pprint
+import inspect
+import ast
+import astunparse
+
+def main():
+    with open("ast_example.py", "r") as source:
+        tree = ast.parse(source.read())
+    # astunparse.dump(tree)
+    print(astunparse.dump(tree))
+
+    analyzer = Analyzer()
+    analyzer.visit(tree)
+    analyzer.report()
+
+
+class Analyzer(ast.NodeVisitor):
+    def __init__(self):
+        self.stats = {
+            "import": [],
+            "from": [],
+            "variable": []
+        }
+
+    def visit_Import(self, node):
+        for alias in node.names:
+            self.stats["import"].append(alias.name)
+        self.generic_visit(node)
+
+    def visit_ImportFrom(self, node):
+        for alias in node.names:
+            self.stats["from"].append(alias.name)
+        self.generic_visit(node)
+
+    def visit_Variable(self, node):
+        for alias in node.names:
+            self.stats["variable"].append(alias.name)
+        self.generic_visit(node)
+
+    def report(self):
+        pprint(self.stats)
+
+
+if __name__ == "__main__":
+    main()
